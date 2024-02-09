@@ -17,6 +17,33 @@ def db_start():
     )
     cur = conn.cursor()
 
+    # Define SQL statements to create tables
+    create_question_table = '''
+        CREATE TABLE IF NOT EXISTS question (
+            id SERIAL PRIMARY KEY,
+            chat_id BIGINT NOT NULL,
+            question TEXT NOT NULL,
+            answered BOOLEAN NOT NULL DEFAULT FALSE
+        )
+    '''
+
+    create_user_table = '''
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            chat_id BIGINT NOT NULL,
+            admin BOOLEAN NOT NULL DEFAULT FALSE,
+            get_notified BOOLEAN NOT NULL DEFAULT FALSE
+        )
+    '''
+
+    # Execute the SQL statements
+    cur.execute(create_question_table)
+    cur.execute(create_user_table)
+
+    # Commit the changes
+    conn.commit()
+
+
 def db_close():
     global conn, cur
     cur.close()
@@ -33,17 +60,25 @@ def add_user(chat_id: int):
     cur.execute("INSERT INTO users (chat_id) VALUES (%s)", (chat_id,))
     conn.commit()
 
-def add_notification(chat_id: int):
-    cur.execute("INSERT INTO notification (chat_id) VALUES (%s)", (chat_id, ))
+def delete_user(chat_id: int):
+    cur.execute("DELETE FROM users WHERE chat_id = %s", (chat_id,))
     conn.commit()
 
-def update_notification(chat_id: int):
-    cur.execute("UPDATE notification SET get_notified = true WHERE chat_id = %s", (chat_id,))
+def update_users(chat_id: int):
+    cur.execute("UPDATE users SET get_notified = true WHERE chat_id = %s", (chat_id,))
     conn.commit()
 
 def update_question(chat_id: int, question_id: int):
     cur.execute("UPDATE question SET answered = true WHERE chat_id = %s and id = %s", (chat_id, question_id, ))
     conn.commit()
+
+def find_question(chat_id: int, question_id: int):
+    cur.execute("SELECT answered FROM question SET WHERE chat_id = %s and id = %s", (chat_id, question_id, ))
+    try:
+        question = cur.fetchone()[0]
+        return True
+    except:
+        return False
 
 
 def get_users():
@@ -53,7 +88,7 @@ def get_users():
     return numbers
 
 def get_users_notified():
-    cur.execute("SELECT chat_id FROM notification WHERE get_notified = true")
+    cur.execute("SELECT chat_id FROM users WHERE get_notified = true")
     users = cur.fetchall()
     numbers = [user[0] for user in users]
     return numbers

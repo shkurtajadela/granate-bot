@@ -11,7 +11,6 @@ async def cmd_start(msg: types.Message) -> None:
     users = get_users()
     if msg.from_user.id not in users:
         add_user(chat_id=msg.from_user.id)
-        add_notification(chat_id=msg.from_user.id)
     await bot.send_message(chat_id=msg.from_user.id, text=new_text, reply_markup=reply_markup)
     await StartStatesGroup.choose_action.set()
 
@@ -39,7 +38,7 @@ async def callback_load_user_choice(callback: types.CallbackQuery, state: FSMCon
 async def callback_load_notification(callback: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:    
         if callback.data == 'yes':
-            update_notification(chat_id=callback.from_user.id)
+            update_users(chat_id=callback.from_user.id)
             new_text = 'Thank you! We will notify you for everything'
             await bot.send_message(chat_id=callback.from_user.id, text=new_text)
             await StartStatesGroup.start.set()
@@ -49,11 +48,12 @@ async def callback_load_notification(callback: types.CallbackQuery, state: FSMCo
             await bot.send_message(chat_id=callback.from_user.id, text=new_text, reply_markup=reply_markup)
             await StartStatesGroup.start.set()
 
+# отправить вопрос в группу "медиа" 
 async def question_load(msg: types.Message) -> None:
     question_id = add_question(chat_id=msg.from_user.id, question=msg.text)
     text = f"User with id {msg.from_user.id} sent the next question (question_id = {question_id}): \n"
     text += msg.text 
-    await bot.send_message(chat_id="-1001764415837", text=text)
+    await bot.send_message(chat_id="", text=text) # добавить id группа чтобы туда сообщение пришли
     new_text = 'Thank you! your question is send to our chat group, we are going to answer soon'
     await bot.send_message(chat_id=msg.from_id, text=new_text)
 
@@ -71,19 +71,33 @@ async def send_to_user(msg: types.Message) -> None:
         snd_space = text[(first_space_index+1):].index(' ')
         question_id = text[(first_space_index+1):(snd_space+first_space_index+1)]
         text_to_send = text[first_space_index+snd_space+1:]
-        update_question(chat_id=user_id, question_id=question_id)
-        await bot.send_message(chat_id=user_id, text=text_to_send)
+        if find_question(chat_id=user_id, question_id=question_id):
+            update_question(chat_id=user_id, question_id=question_id)
 
+            try:
+                await bot.send_message(chat_id=user_id, text=text_to_send)
+                await bot.send_message(chat_id=msg.from_user.id, text="Message was sent to user")
+            except:
+                delete_user(chat_id=user_id)
+                await bot.send_message(chat_id=msg.from_user.id, text="Message could not be send to user. Maybe he has blocked the bot")
+        else:
+            await bot.send_message(chat_id=msg.from_user.id, text="Message could not be send to user. Check user_id and question_id")
+
+# /send_to_all - отправить рассылки всем пользователям 
 async def send_to_all(msg: types.Message) -> None:
     admins = get_admin()
-    print(admins)
+    
     if msg.from_user.id in admins:
         text = msg.text[13:]
         users = get_users()
         for user_id in users:
-            await bot.send_message(chat_id=user_id, text=text)
+            try:
+                await bot.send_message(chat_id=user_id, text=text)
+            except:
+                delete_user(chat_id=user_id)
         await bot.send_message(chat_id=msg.from_user.id, text="Message was sent to everybody")
 
+# /send_to_all - отправить рассылки подписанным пользователям 
 async def send_to_all_on(msg: types.Message) -> None:
     admins = get_admin()
     print(admins)
@@ -91,7 +105,10 @@ async def send_to_all_on(msg: types.Message) -> None:
         text = msg.text[16:]
         users = get_users_notified()
         for user_id in users:
-            await bot.send_message(chat_id=user_id, text=text)
+            try:
+                await bot.send_message(chat_id=user_id, text=text)
+            except:
+                delete_user(chat_id=user_id)
         await bot.send_message(chat_id=msg.from_user.id, text="Message was sent to everybody with notification on")
             
 
