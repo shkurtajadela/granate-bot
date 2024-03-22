@@ -4,7 +4,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 # from bot.database import db_start, db_close
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from ..bot.main_handlers import *
+from granate_bot.management.bot.main_handlers import *
 from aiogram import Bot
 from dotenv import load_dotenv
 import os

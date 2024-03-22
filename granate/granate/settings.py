@@ -20,7 +20,6 @@ password = os.getenv("PASSWORD")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -30,8 +29,8 @@ SECRET_KEY = 'django-insecure-uwk_(tr6q33#x9vdy)+4fg%6i-=2swf09%+&7-y@tauvhf%!zy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['194.67.90.71', 'localhost', '127.0.0.1']
-
+ALLOWED_HOSTS = ['194.67.90.71', 'localhost', '0.0.0.0']
+#ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -84,10 +83,10 @@ WSGI_APPLICATION = 'granate.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': password,
-        'HOST': 'localhost',
+        'NAME': 'bot_media',
+        'USER': 'adela',
+        'PASSWORD': 'mR1hP3qA5h',
+        'HOST': '194.67.90.71',
         'PORT': '',
     }
 }
